@@ -2,6 +2,7 @@ package org.robotics.nao;
 
 import java.util.ArrayList;
 
+import org.robotics.nao.view.Accelerometer;
 import org.robotics.nao.view.SpeechRecognition;
 
 import android.app.Activity;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 public class Application extends Activity {
 	private static final int VOICE_RECOGNITION = 1;
+	private static final int ACCELEROMETER = 2;
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -23,8 +25,11 @@ public class Application extends Activity {
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-    	SubMenu m = menu.addSubMenu(0, VOICE_RECOGNITION, 0, "Speak");
+    	SubMenu m;
+    	m= menu.addSubMenu(0, VOICE_RECOGNITION, 0, "Speak");
     	m.setIcon(android.R.drawable.ic_btn_speak_now);
+    	m = menu.addSubMenu(0, ACCELEROMETER, 0, "Sensor");
+    	m.setIcon(android.R.drawable.ic_menu_directions);
     	return super.onCreateOptionsMenu(menu);
     }
     @Override
@@ -34,13 +39,16 @@ public class Application extends Activity {
 		case VOICE_RECOGNITION:
 			startSpeechRecognitionActivity();
 			break;
+		case ACCELEROMETER:
+			startAccelerometerActivity();
+			break;
 		default:
 			break;
 		}
        	return super.onContextItemSelected(item);
     }
     
-    @Override
+	@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	switch (requestCode) {
 		case VOICE_RECOGNITION:
@@ -60,4 +68,8 @@ public class Application extends Activity {
     private void extractSpeechRecognitionResults(ArrayList<String>results){
     	Toast.makeText(getApplicationContext(),results.get(0), Toast.LENGTH_LONG).show();
     }
+    private void startAccelerometerActivity() {
+    	Intent intent=new Intent(Application.this,Accelerometer.class);
+        startActivityForResult(intent, ACCELEROMETER);
+	}
 }
