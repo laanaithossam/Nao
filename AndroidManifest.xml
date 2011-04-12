@@ -12,7 +12,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.SpeechRecognition"/>
-        <activity android:name=".view.Accelerometer"/>
     </application>
 </manifest>

@@ -1,6 +1,6 @@
 package org.robotics.nao.controller;
 
-import org.robotics.nao.model.AccelerometerModel;
+import org.robotics.nao.model.Accelerometer;
 
 import android.app.Activity;
 import android.hardware.Sensor;
@@ -15,21 +15,14 @@ public class AccelerometerController implements SensorEventListener {
 	}
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		switch(event.sensor.getType()){
 		case Sensor.TYPE_ACCELEROMETER:
-			AccelerometerModel.onAccelerometerChanged(event);
-			break;
-		case Sensor.TYPE_ORIENTATION:
-			AccelerometerModel.onOrientationChanged(event);
+			Accelerometer.onAccelerometerChanged(event);
 			break;
 		}	
 	}
-	
-	
 }
