@@ -19,12 +19,12 @@ public class Accelerometer {
 		this.application=application;
 		accCtrl=new AccelerometerController(this);
 		sensorMgr = (SensorManager) application.getSystemService(Context.SENSOR_SERVICE);
-		accelSupported = sensorMgr.registerListener(accCtrl, sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),SensorManager.SENSOR_DELAY_UI);
 		bSensorRunning=false;
 	}
 	
 	public void startAccelerometerActivity(){
 		if(!bSensorRunning){
+			accelSupported = sensorMgr.registerListener(accCtrl, sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),SensorManager.SENSOR_DELAY_UI);
     		bSensorRunning=runAccelerometer();
     		if (!bSensorRunning)
     			application.showMessageBox("Accelerometer not supported!");
