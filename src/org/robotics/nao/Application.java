@@ -1,30 +1,23 @@
 package org.robotics.nao;
 
-import java.util.ArrayList;
-
-import org.robotics.nao.controller.AccelerometerController;
 import org.robotics.nao.model.Accelerometer;
 import org.robotics.nao.model.SpeechRecognition;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class Application extends Activity {
 	private static final int VOICE_RECOGNITION = 1;
 	private static final int ACCELEROMETER = 2;
-	private boolean bSensorRunning=false;
-	private SensorManager sensorMgr;
-	private AccelerometerController accCtrl;
+	private Accelerometer accelerometer;
+	private SpeechRecognition speechrecognition;
 /**
  * Activity
  */
@@ -34,9 +27,8 @@ public class Application extends Activity {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.main);
-        sensorMgr = (SensorManager) this.getSystemService(SENSOR_SERVICE);
-        SpeechRecognition.parent=this;
-        Accelerometer.parent=this;
+        speechrecognition=new SpeechRecognition(this);
+        accelerometer=new Accelerometer(this);
     }
 
     @Override
@@ -44,7 +36,7 @@ public class Application extends Activity {
     	switch (requestCode) {
 		case VOICE_RECOGNITION:
 			if (resultCode == Activity.RESULT_OK)
-				extractSpeechRecognitionResults(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS));
+				speechrecognition.extractSpeechRecognitionResults(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS));
 			else
 				Toast.makeText(getApplicationContext(),"Erreur", Toast.LENGTH_LONG).show();
 			break;
@@ -66,7 +58,7 @@ public class Application extends Activity {
     }
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-    		if(bSensorRunning)
+    		if(accelerometer.isbSensorRunning())
         		menu.findItem(ACCELEROMETER).setTitle("Stop");
         	else
         		menu.findItem(ACCELEROMETER).setTitle("Walk");    	
@@ -76,59 +68,20 @@ public class Application extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
 		case VOICE_RECOGNITION:
-			startSpeechRecognitionActivity();
+			speechrecognition.onSpeechRecognitionClick();;
 			break;
 		case ACCELEROMETER:
-			startAccelerometerActivity();
+			accelerometer.startAccelerometerActivity();
 			break;
 		default:
 			break;
 		}
        	return super.onContextItemSelected(item);
     }
+    
+    public void showMessageBox(String message){
+    	Toast.makeText(getApplicationContext(),message, Toast.LENGTH_LONG).show();
+    }
 
-/**
- * Speech Recognition
- */
-    private void startSpeechRecognitionActivity(){
-    	SpeechRecognition.onSpeechRecognitionClick();
-    }
-    private void extractSpeechRecognitionResults(ArrayList<String>results){
-    	Toast.makeText(getApplicationContext(),results.get(0), Toast.LENGTH_LONG).show();
-    }
-    
-/** 
- *	Accelerometer 
-**/    
-    private void startAccelerometerActivity() {
-    	if(!bSensorRunning){
-    		accCtrl=new AccelerometerController(this);
-    		if (!runAccelerometer())
-    			Toast.makeText(getApplicationContext(),"Accelerometer not supported!", Toast.LENGTH_LONG).show();
-    	}
-    	else
-    		stopAccelerometer();
-    }
-    
-    private  boolean runAccelerometer(){
-		boolean accelSupported = sensorMgr.registerListener(accCtrl, sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),SensorManager.SENSOR_DELAY_UI);
-		if(!accelSupported){
-			sensorMgr.unregisterListener(accCtrl, sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
-			((TextView)this.findViewById(R.id.acc)).setText("Pas d'accelerometre");
-			return false;
-		}
-		bSensorRunning=true;
-		return true;
-	}
-    
-    private void stopAccelerometer(){
-    	sensorMgr.unregisterListener(accCtrl, sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
-    	bSensorRunning=false;
-    }
-    
-    public void setAccelerometerFields(float x,float y){
-		((TextView)this.findViewById(R.id.axex)).setText("AxeX:"+x);
-		((TextView)this.findViewById(R.id.axey)).setText("AxeY:"+y);
-	}
  
 }
