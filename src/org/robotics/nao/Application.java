@@ -50,7 +50,7 @@ public class Application extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
     	SubMenu m;
-    	m= menu.addSubMenu(0, VOICE_RECOGNITION, 0, "Speak");
+    	m = menu.addSubMenu(0, VOICE_RECOGNITION, 0, "Speak");
     	m.setIcon(android.R.drawable.ic_btn_speak_now);
     	m = menu.addSubMenu(0, ACCELEROMETER, 0, "Walk");
     	m.setIcon(android.R.drawable.ic_menu_directions);
