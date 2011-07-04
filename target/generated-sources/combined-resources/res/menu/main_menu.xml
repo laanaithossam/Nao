@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item android:title="@string/menu_walk_on" android:id="@+id/item_walk" android:enabled="true"></item>
+    <item android:title="@string/menu_speech" android:id="@+id/item_speech" android:enabled="true"></item>
+    <item android:title="@string/menu_cam" android:id="@+id/item_cam" android:enabled="false"></item><item android:title="@string/menu_leave" android:id="@+id/item_leave" />
+</menu>
