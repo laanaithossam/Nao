@@ -13,10 +13,10 @@ import com.naoqi.remotecomm.ALProxy;
 
 public class ConnectionManager implements Callback {
 	ALBroker fBroker = null;
-	
-	public String[] almodules = { 
+
+	public String[] almodules = {
 			"ALTextToSpeech",
-			"ALAudioDevice", 
+			"ALAudioDevice",
 			"ALMotion",
 			"ALLeds",
 			"ALLogger",
@@ -26,10 +26,10 @@ public class ConnectionManager implements Callback {
 			"ALMemory",
 			"AWPreferences"
 	};
-	
-	private HashMap<String, ALProxy> proxies = new HashMap<String, ALProxy>();
-	
-	public enum connexion_state { 
+
+	private final HashMap<String, ALProxy> proxies = new HashMap<String, ALProxy>();
+
+	public enum connexion_state {
 		STATE_OFFLINE,
 		STATE_CONNECTING,
 		STATE_CONNECTED,
@@ -44,32 +44,32 @@ public class ConnectionManager implements Callback {
 		EVENT_NAO_PRESENCE,
 		EVENT_NAO_RESPONSE;
 	}
-		
+
 	public connexion_state state = connexion_state.STATE_OFFLINE;
-	
+
 	private static ConnectionManager instance = null;
-	
+
 	private ConnectionManager(String robotname, String password){
 		init_proxies(robotname, password);
 	}
 
 	public final synchronized static ConnectionManager getInstance(String robotname, String password) {
-        if (instance == null) 
+        if (instance == null)
             instance = new ConnectionManager(robotname, password);
         return instance;
     }
-	
+
 	private void init_proxies(String robotname, String password) {
 		fBroker = new ALBroker(robotname, password, this);
 		ALProxy proxy = null;
-		
+
 		for (String module_name : almodules) {
 		try {
 			proxy = new ALProxy(module_name, fBroker);
 			proxies.put(module_name, proxy);
-		} 
-		catch (XMLRPCException e) { 
-			e.printStackTrace(); 
+		}
+		catch (XMLRPCException e) {
+			e.printStackTrace();
 			}
 		}
 
@@ -77,32 +77,32 @@ public class ConnectionManager implements Callback {
 		if (null != proxy)
 			proxy.setDestinationJabberId( "_preferences@xmpp.aldebaran-robotics.com" );
 	}
-	
+
 	/*
 	 * @return Return a proxy for a given module name
 	 */
 	public ALProxy getProxy(String module_name) {
 		return proxies.get(module_name);
 	}
-	
+
 	public void connexion_asyncCall( long timeoutMillis, final ALProxy.MethodResponseListener listener, ALProxy proxy, final String method, Object ... params  ){
 
-	    	if (fBroker==null) 
+	    	if (fBroker==null)
 	    		return;
-	    	
-	    	StringBuilder text = new StringBuilder();	
+
+	    	StringBuilder text = new StringBuilder();
 	    	text.append(method);
 		    	if (params.length>0){
 		    		text.append(" ");
 		    		text.append(params[0].toString());
-		    	}   	
+		    	}
 
 	    	try {
 	    		proxy.asyncCall(
-	    				timeoutMillis,	    				
+	    				timeoutMillis,
 	    				new ALProxy.MethodResponseListener(){
 	    					@Override
-	    					public void onResponse(Object result  ) {	    						
+	    					public void onResponse(Object result  ) {
 	    						if (listener!=null)
 	    							listener.onResponse(result);
 	    					}
@@ -112,55 +112,52 @@ public class ConnectionManager implements Callback {
 	    		connexion_exception(e);
 	    	}
 	    }
-	
+
 	 public void connexion_exception( Exception e ){
 			/// disconnect in case of problem
 			connexion_event(connexion_event.EVENT_DISCONNECT);
 		}
-	 
-	public void connexion_event( connexion_event event ) { 	
+
+	public void connexion_event( connexion_event event ) {
 	    	Log.i("connexion event", String.format("state: %s event: %s", state2string(state), event2string(event)));
 	    	// all states
-	    	if (event == connexion_event.EVENT_DISCONNECT 
+	    	if (event == connexion_event.EVENT_DISCONNECT
 	    			&& state != connexion_state.STATE_OFFLINE ){
 	    			state = connexion_state.STATE_OFFLINE;
-	    		
+
 	    		if (fBroker !=null) {
 	    			fBroker.disconnect();
 	    			fBroker = null;
 	    		}
-			}	
-	    	
+			}
+
 	    	// state machine
-	    	switch( state ){	    	
+	    	switch( state ){
 	    	case STATE_OFFLINE:
 	    		if (event == connexion_event.EVENT_CONNECTING)
 	    			state = connexion_state.STATE_CONNECTING;
 	    		break;
 	    	case STATE_CONNECTING:
 	    		if (event == connexion_event.EVENT_CONNECT)
-	    			state = connexion_state.STATE_CONNECTED;	
+	    			state = connexion_state.STATE_CONNECTED;
 	    		break;
 	    	case STATE_CONNECTED:
 	    		if (event == connexion_event.EVENT_NAO_PRESENCE) {
 	    				state = connexion_state.STATE_NAO_PRESENCE;
 	    				isResponding();
-	    		}		    	
+	    		}
 	    		break;
 	    	case STATE_NAO_PRESENCE:
 	    		if (event == connexion_event.EVENT_NAO_RESPONSE)
-	    			state = connexion_state.STATE_NAO_RESPONDING;	        	
-	    		break;	    		
+	    			state = connexion_state.STATE_NAO_RESPONDING;
+	    		break;
 	    	case STATE_NAO_RESPONDING:
 	    		state = connexion_state.STATE_NAO_RESPONDING;
-	    		break; 	
+	    		break;
     	}
-	    
-	        
-	    }
-	
+	}
+
 	public void isResponding() {
-		
 		ALProxy fTextToSpeechProxy = proxies.get("ALTextToSpeech");
 		connexion_asyncCall( 10000,
 				new ALProxy.MethodResponseListener(){
@@ -169,11 +166,10 @@ public class ConnectionManager implements Callback {
 							connexion_event(connexion_event.EVENT_NAO_RESPONSE);
 						return;
 					}
-				}	
+				}
 				, fTextToSpeechProxy, "version" );
-
 	}
-	
+
 	/*
 	 * to string method for connexion_event
 	 * @ return a string for a connexion_event
@@ -219,6 +215,5 @@ public class ConnectionManager implements Callback {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
-	
+
 }
