@@ -1,21 +1,29 @@
 package org.robotics.nao.bo;
 
+import com.naoqi.remotecomm.ALProxy;
 
 
 public class Nao {
 	private static Nao instance = null;
-
+	private String robotname = null;
+	private String password = null;
 	ConnectionManager connectionmanager = null;
 
-	private Nao(String robotname, String password){
-		connectionmanager = ConnectionManager.getInstance(robotname, password);
-	}
+	private Nao(){}
 
-	public final synchronized static Nao getInstance(String robotname, String password) {
+	public final synchronized static Nao getInstance() {
         if (instance == null)
-            instance = new Nao(robotname, password);
+            instance = new Nao();
         return instance;
     }
+
+	public void getInstance(String robotname, String password) {
+		if (instance == null)
+            instance = new Nao();
+		this.robotname = robotname;
+		this.password = password;
+		connectionmanager = ConnectionManager.getInstance(this.robotname, this.password);
+	}
 
 	public void walkTo(float x,float y,float theta){
 		System.out.println("walkTo : X = " + x + " | Y = "+ y +" | O = " + theta);
