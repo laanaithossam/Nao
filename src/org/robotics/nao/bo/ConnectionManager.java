@@ -14,7 +14,7 @@ import com.naoqi.remotecomm.ALProxy;
 public class ConnectionManager implements Callback {
 	ALBroker fBroker = null;
 
-	public String[] almodules = {
+	public final String[] almodules = {
 			"ALTextToSpeech",
 			"ALAudioDevice",
 			"ALMotion",
@@ -84,6 +84,24 @@ public class ConnectionManager implements Callback {
 	public ALProxy getProxy(String module_name) {
 		return proxies.get(module_name);
 	}
+
+	public void connexion_postCall( ALProxy proxy, String method, Object ... params ){
+
+	    	if (fBroker==null) return;
+
+	    	StringBuilder text = new StringBuilder();
+	    	text.append(method);
+	    	for (Object object : params){
+	    		text.append(" ");
+	    		text.append(object.toString());
+	    	}
+
+		    try {
+		    	proxy.postCall(method, params);
+			} catch (Exception e) {
+				connexion_exception(e);
+			}
+	    }
 
 	public void connexion_asyncCall( long timeoutMillis, final ALProxy.MethodResponseListener listener, ALProxy proxy, final String method, Object ... params  ){
 
