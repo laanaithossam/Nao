@@ -1,10 +1,8 @@
 package org.robotics.nao.bo;
 
-import android.os.Message;
-import android.os.Handler.Callback;
 
 
-public class Nao implements Callback {
+public class Nao {
 	private static Nao instance = null;
 
 	ConnectionManager connectionmanager = null;
@@ -25,12 +23,6 @@ public class Nao implements Callback {
 
 	public void say(String message){
 		System.out.println("say = " + message);
-	}
-
-	@Override
-	public boolean handleMessage(Message msg) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 }
