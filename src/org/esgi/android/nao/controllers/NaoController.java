@@ -35,15 +35,20 @@ public class NaoController
 	
 	public void walkTo(float x,float y,float theta)
 	{
+		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
+			return;
+
 		Log.i("walkTo: "," X = " + x + " | Y = "+ y +" | O = " + theta);
 		
 		ALProxy motion_proxy = connectionmanager.getProxy("ALMotion");
-
 		connectionmanager.connexion_postCall(motion_proxy, "walkTo", x,y,theta);
 	}
 	
 	public void say(String message)
 	{
+		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
+			return;
+
 		Log.i("Say: ", message);
 		ALProxy tts_proxy = connectionmanager.getProxy("ALTextToSpeech");
 		connectionmanager.connexion_postCall(tts_proxy, "say", message);
