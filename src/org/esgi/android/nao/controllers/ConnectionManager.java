@@ -42,28 +42,25 @@ public class ConnectionManager implements Callback {
 		STATE_PRESENCE,
 	};
 
-	public enum connexion_event {
-		EVENT_CONNECTING,
-		EVENT_CONNECT,
-		EVENT_DISCONNECT,
-	}
-
 	public connexion_state state = connexion_state.STATE_OFFLINE;
 
 	private static ConnectionManager instance = null;
 
-	private ConnectionManager(String robotname, String password, INaoConnectionEvent event){
-		init_proxies(robotname, password);
+	private ConnectionManager(INaoConnectionEvent event) {
 		this.m_event = event;
 	}
 
-	public final synchronized static ConnectionManager getInstance(String robotname, 
-			String password, INaoConnectionEvent event) {
+	public final synchronized static ConnectionManager getInstance(INaoConnectionEvent event) {
         if (instance == null)
-            instance = new ConnectionManager(robotname, password, event);
+            instance = new ConnectionManager(event);
         return instance;
     }
-
+	
+	public void connect(String robotname, String password) {
+		connexion_event(connexion_state.STATE_CONNECTING);
+		init_proxies(robotname, password);
+	}
+	
 	private void init_proxies(String robotname, String password) {
 		fBroker = new ALBroker(robotname, password, this);
 		ALProxy proxy = null;
@@ -83,7 +80,7 @@ public class ConnectionManager implements Callback {
 			proxy.setDestinationJabberId( "_preferences@xmpp.aldebaran-robotics.com" );
 	}
 
-	/*
+	/**
 	 * @return Return a proxy for a given module name
 	 */
 	public ALProxy getProxy(String module_name) {
@@ -129,6 +126,7 @@ public class ConnectionManager implements Callback {
 	    			fBroker.disconnect();
 	    			fBroker = null;
 	    		}
+	    		proxies.clear();
 	    		break;
 	    	case STATE_CONNECTING:
 	    		this.state = connexion_state.STATE_CONNECTING;

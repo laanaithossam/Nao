@@ -33,7 +33,8 @@ public class NaoController implements ALProxy.MethodResponseListener
 	{
 		this.robotname = robotname;
 		this.password = password;
-		connectionmanager = ConnectionManager.getInstance(this.robotname, this.password, this.connection_event);
+		connectionmanager = ConnectionManager.getInstance(this.connection_event);
+		connectionmanager.connect(this.robotname, this.password);
 	}
 	
 	public void walkTo(float x,float y,float theta)

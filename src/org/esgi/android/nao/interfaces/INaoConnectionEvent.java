@@ -4,4 +4,5 @@ public interface INaoConnectionEvent
 {
 	public void onConnected();
 	public void onErrorConnection();
+	
 }
