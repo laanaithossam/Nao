@@ -1,4 +1,4 @@
-package org.robotics.nao.bo;
+package org.esgi.android.nao.controllers;
 
 import java.util.HashMap;
 
