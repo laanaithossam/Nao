@@ -4,7 +4,7 @@ import org.esgi.android.nao.controllers.AccelerometerController;
 import org.esgi.android.nao.controllers.NaoController;
 import org.esgi.android.nao.controllers.SpeechController;
 import org.esgi.android.nao.interfaces.IAccelerometerEvent;
-import org.esgi.android.nao.interfaces.INaoEvent;
+import org.esgi.android.nao.interfaces.INaoConnectionEvent;
 import org.esgi.android.nao.interfaces.ISpeechEvent;
 
 import android.app.Activity;
@@ -22,7 +22,7 @@ import android.widget.Toast;
 /**
  * 
  */
-public class MainActivity extends Activity implements IAccelerometerEvent, ISpeechEvent, INaoEvent, Runnable
+public class MainActivity extends Activity implements IAccelerometerEvent, ISpeechEvent, INaoConnectionEvent, Runnable
 {
 	//-----------------------------------------------------------------------------------------------------------------
 	// Private variables
