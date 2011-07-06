@@ -4,6 +4,7 @@ import org.esgi.android.nao.interfaces.INaoConnectionEvent;
 
 import com.naoqi.remotecomm.ALProxy;
 
+import android.net.NetworkInfo.State;
 import android.util.Log;
 
 public class NaoController 
@@ -52,5 +53,14 @@ public class NaoController
 		Log.i("Say: ", message);
 		ALProxy tts_proxy = connectionmanager.getProxy("ALTextToSpeech");
 		connectionmanager.connexion_postCall(tts_proxy, "say", message);
+	}
+	
+	public void getInstalledBehaviors(ALProxy.MethodResponseListener rsp_listener)
+	{
+		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
+			return;
+		ALProxy fBehaviorManagerProxy = connectionmanager.getProxy("ALBehaviorManager");
+		connectionmanager.connexion_asyncCall( 
+				300000, rsp_listener, fBehaviorManagerProxy, "getInstalledBehaviors" );
 	}
 }
