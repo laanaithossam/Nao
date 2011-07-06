@@ -93,14 +93,7 @@ public class ConnectionManager implements Callback {
 	public void connexion_postCall( ALProxy proxy, String method, Object ... params ){
 
 	    	if (fBroker==null) return;
-
-	    	StringBuilder text = new StringBuilder();
-	    	text.append(method);
-	    	for (Object object : params){
-	    		text.append(" ");
-	    		text.append(object.toString());
-	    	}
-
+	    	
 		    try {
 		    	proxy.postCall(method, params);
 			} catch (Exception e) {
@@ -109,34 +102,16 @@ public class ConnectionManager implements Callback {
 	    }
 
 	public void connexion_asyncCall( long timeoutMillis, final ALProxy.MethodResponseListener listener, ALProxy proxy, final String method, Object ... params  ){
-
 	    	if (fBroker==null)
 	    		return;
-
-	    	StringBuilder text = new StringBuilder();
-	    	text.append(method);
-		    	if (params.length>0){
-		    		text.append(" ");
-		    		text.append(params[0].toString());
-		    	}
-
 	    	try {
-	    		proxy.asyncCall(
-	    				timeoutMillis,
-	    				new ALProxy.MethodResponseListener(){
-	    					@Override
-	    					public void onResponse(Object result  ) {
-	    						if (listener!=null)
-	    							listener.onResponse(result);
-	    					}
-	    				}
-	    				,method, params);
-	    	} catch (XMLRPCException e) {
-	    		connexion_exception(e);
+	    		proxy.asyncCall(timeoutMillis, listener, method, params);
+	    		} catch (XMLRPCException e) {
+	    			connexion_exception(e);
 	    	}
 	    }
 
-	 public void connexion_exception( Exception e ){
+	 public void connexion_exception(Exception e){
 			/// disconnect in case of problem
 			connexion_event(connexion_state.STATE_OFFLINE);
 		}
