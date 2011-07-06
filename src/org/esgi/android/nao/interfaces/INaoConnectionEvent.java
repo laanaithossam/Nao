@@ -1,6 +1,6 @@
 package org.esgi.android.nao.interfaces;
 
-public interface INaoEvent 
+public interface INaoConnectionEvent 
 {
 	public void onConnected();
 	public void onErrorConnection();

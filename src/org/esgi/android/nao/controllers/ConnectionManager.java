@@ -3,7 +3,7 @@ package org.esgi.android.nao.controllers;
 import java.util.HashMap;
 
 import org.jivesoftware.smack.packet.Presence;
-import org.esgi.android.nao.interfaces.INaoEvent;
+import org.esgi.android.nao.interfaces.INaoConnectionEvent;
 import org.xmlrpc.android.XMLRPCException;
 
 import android.os.Message;
@@ -15,7 +15,7 @@ import com.naoqi.remotecomm.ALProxy;
 
 public class ConnectionManager implements Callback {
 	ALBroker fBroker = null;
-	private INaoEvent m_event = null;
+	private INaoConnectionEvent m_event = null;
 	
 	//FIXME: wtf is this
 	public static final int ID_UPDATE_STATUS = 101;
@@ -52,13 +52,13 @@ public class ConnectionManager implements Callback {
 
 	private static ConnectionManager instance = null;
 
-	private ConnectionManager(String robotname, String password, INaoEvent event){
+	private ConnectionManager(String robotname, String password, INaoConnectionEvent event){
 		init_proxies(robotname, password);
 		this.m_event = event;
 	}
 
 	public final synchronized static ConnectionManager getInstance(String robotname, 
-			String password, INaoEvent event) {
+			String password, INaoConnectionEvent event) {
         if (instance == null)
             instance = new ConnectionManager(robotname, password, event);
         return instance;

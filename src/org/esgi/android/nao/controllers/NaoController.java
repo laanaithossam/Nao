@@ -1,6 +1,6 @@
 package org.esgi.android.nao.controllers;
 
-import org.esgi.android.nao.interfaces.INaoEvent;
+import org.esgi.android.nao.interfaces.INaoConnectionEvent;
 
 import com.naoqi.remotecomm.ALProxy;
 
@@ -11,14 +11,14 @@ public class NaoController
 	//-----------------------------------------------------------------------------------------------------------------
 	// Private variables
 	//-----------------------------------------------------------------------------------------------------------------
-	private INaoEvent m_event = null;
+	private INaoConnectionEvent m_event = null;
 	private String robotname = null;
 	private String password = null;
 	private ConnectionManager connectionmanager = null;
 	//-----------------------------------------------------------------------------------------------------------------
 	// Constructor
 	//-----------------------------------------------------------------------------------------------------------------
-	public NaoController(INaoEvent event) 
+	public NaoController(INaoConnectionEvent event) 
 	{
 		this.m_event = event;
 	}
