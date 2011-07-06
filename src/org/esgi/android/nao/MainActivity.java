@@ -5,6 +5,7 @@ import org.esgi.android.nao.controllers.NaoController;
 import org.esgi.android.nao.controllers.SpeechController;
 import org.esgi.android.nao.interfaces.IAccelerometerEvent;
 import org.esgi.android.nao.interfaces.INaoConnectionEvent;
+import org.esgi.android.nao.interfaces.INaoListener;
 import org.esgi.android.nao.interfaces.ISpeechEvent;
 
 import android.app.Activity;
@@ -22,7 +23,8 @@ import android.widget.Toast;
 /**
  * 
  */
-public class MainActivity extends Activity implements IAccelerometerEvent, ISpeechEvent, INaoConnectionEvent, Runnable
+public class MainActivity extends Activity implements IAccelerometerEvent, ISpeechEvent, INaoConnectionEvent,INaoListener,
+														Runnable
 {
 	//-----------------------------------------------------------------------------------------------------------------
 	// Private variables
@@ -51,7 +53,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
         
         this.m_speech = new SpeechController(this, this);
         
-        this.m_nao = new NaoController(this);
+        this.m_nao = new NaoController(this, this);
         //FIXME : remove these hardcoded String, show a form and ask for login and passwd
         this.m_nao.connect("Bender", "myfunnypassword");
     }
@@ -286,5 +288,11 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 			txt_y.setText("waiting");
 			txt_z.setText("waiting");
 		}
+	}
+
+	@Override
+	public void ongetInstalledBehaviors(String[] behaviors) {
+		// FIXME: insert the behaviors name into a list
+		
 	}
 }
