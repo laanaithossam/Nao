@@ -2,6 +2,7 @@ package org.esgi.android.nao.controllers;
 
 import java.util.HashMap;
 
+import org.jivesoftware.smack.packet.Presence;
 import org.esgi.android.nao.interfaces.INaoEvent;
 import org.xmlrpc.android.XMLRPCException;
 
@@ -15,6 +16,9 @@ import com.naoqi.remotecomm.ALProxy;
 public class ConnectionManager implements Callback {
 	ALBroker fBroker = null;
 	private INaoEvent m_event = null;
+	
+	//FIXME: wtf is this
+	public static final int ID_UPDATE_STATUS = 101;
 	
 	public final String[] almodules = {
 			"ALTextToSpeech",
@@ -35,16 +39,13 @@ public class ConnectionManager implements Callback {
 		STATE_OFFLINE,
 		STATE_CONNECTING,
 		STATE_CONNECTED,
-		STATE_NAO_PRESENCE,
-		STATE_NAO_RESPONDING
+		STATE_PRESENCE,
 	};
 
 	public enum connexion_event {
 		EVENT_CONNECTING,
 		EVENT_CONNECT,
 		EVENT_DISCONNECT,
-		EVENT_NAO_PRESENCE,
-		EVENT_NAO_RESPONSE;
 	}
 
 	public connexion_state state = connexion_state.STATE_OFFLINE;
@@ -137,79 +138,35 @@ public class ConnectionManager implements Callback {
 
 	 public void connexion_exception( Exception e ){
 			/// disconnect in case of problem
-			connexion_event(connexion_event.EVENT_DISCONNECT);
+			connexion_event(connexion_state.STATE_OFFLINE);
 		}
 
-	public void connexion_event( connexion_event event ) {
-	    	Log.i("connexion event", String.format("state: %s event: %s", state2string(state), event2string(event)));
-	    	// all states
-	    	if (event == connexion_event.EVENT_DISCONNECT
-	    			&& state != connexion_state.STATE_OFFLINE ){
-	    			state = connexion_state.STATE_OFFLINE;
-
+	public void connexion_event(connexion_state state) {
+		if (this.state == state)
+			return;
+	   	Log.i("connexion event", String.format("state: %s event: %s", state2string(state), state2string(state)));
+	    	// state machine
+	    switch(state){
+	    	case STATE_OFFLINE:
+	    		state = connexion_state.STATE_OFFLINE;
+	    		this.m_event.onErrorConnection();
 	    		if (fBroker !=null) {
 	    			fBroker.disconnect();
 	    			fBroker = null;
 	    		}
-			}
-
-	    	// state machine
-	    	switch( state ){
-	    	case STATE_OFFLINE:
-	    		if (event == connexion_event.EVENT_CONNECTING)
-	    			state = connexion_state.STATE_CONNECTING;
 	    		break;
 	    	case STATE_CONNECTING:
-	    		if (event == connexion_event.EVENT_CONNECT)
-	    			state = connexion_state.STATE_CONNECTED;
+	    		this.state = connexion_state.STATE_CONNECTING;
 	    		break;
 	    	case STATE_CONNECTED:
-	    		if (event == connexion_event.EVENT_NAO_PRESENCE) {
-	    				state = connexion_state.STATE_NAO_PRESENCE;
-	    				isResponding();
-	    		}
+	    		this.state = connexion_state.STATE_CONNECTED;
 	    		break;
-	    	case STATE_NAO_PRESENCE:
-	    		if (event == connexion_event.EVENT_NAO_RESPONSE)
-	    			state = connexion_state.STATE_NAO_RESPONDING;
+	    	case STATE_PRESENCE:
+	    		this.state = connexion_state.STATE_PRESENCE;
+	    		this.m_event.onConnected();
 	    		break;
-	    	case STATE_NAO_RESPONDING:
-	    		state = connexion_state.STATE_NAO_RESPONDING;
-	    		break;
+	    		
     	}
-	}
-
-	public void isResponding() {
-		ALProxy fTextToSpeechProxy = proxies.get("ALTextToSpeech");
-		connexion_asyncCall( 10000,
-				new ALProxy.MethodResponseListener(){
-					public void onResponse(Object result) {
-						if (result!=null) // timeout
-							connexion_event(connexion_event.EVENT_NAO_RESPONSE);
-						return;
-					}
-				}
-				, fTextToSpeechProxy, "version" );
-	}
-
-	/*
-	 * to string method for connexion_event
-	 * @ return a string for a connexion_event
-	 */
-	public String event2string(connexion_event event) {
-		switch (event) {
-		case EVENT_CONNECT:
-			return "EVENT_CONNECT";
-		case EVENT_CONNECTING:
-			return "EVENT_CONNECTING";
-		case EVENT_DISCONNECT:
-			return "EVENT_DISCONNECT";
-		case EVENT_NAO_PRESENCE:
-			return "EVENT_NAO_PRESENCE";
-		case EVENT_NAO_RESPONSE:
-			return "EVENT_NAO_RESPONSE";
-		}
-		return "UNKNOWN EVENT";
 	}
 
 	/*
@@ -224,17 +181,50 @@ public class ConnectionManager implements Callback {
 			return "STATE_CONNECTING";
 		case STATE_CONNECTED:
 			return "STATE_CONNECTED";
-		case STATE_NAO_PRESENCE:
-			return "STATE_NAO_PRESENCE";
-		case STATE_NAO_RESPONDING:
-			return "STATE_NAO_RESPONDING";
 		}
 		return "UNKNOWN_STATE";
 	}
 
 	@Override
 	public boolean handleMessage(Message msg) {
-		// TODO Auto-generated method stub
+		try {	
+	    	if ( msg.what >= ALBroker.ID_CONNECT_ERROR
+	    			&& msg.what <= ALBroker.ID_TIMEOUT )
+	    		Log.i( "NAO", String.format("handleMessage %s %s", ALBroker.msg_name[msg.what], msg.obj));
+	    	else
+	    		Log.i( "NAO", String.format("handleMessage %d %s", msg.what, msg.obj));
+	      
+	    	switch( msg.what ){
+	    		case ID_UPDATE_STATUS:
+	    			return true;
+	    		case ALBroker.ID_DISCONNECTED:
+	    		case ALBroker.ID_CONNECT_ERROR:
+	    			connexion_event(connexion_state.STATE_OFFLINE);
+	    			return true;
+	        
+	    		case ALBroker.ID_CONNECTED:
+	    			//FIXME: presence ?
+	    			connexion_event(connexion_state.STATE_CONNECTED);   
+	    			return true;
+
+	    		case ALBroker.ID_PRESENCE:
+	    			if (fBroker==null)
+	    				return true;
+	    			Presence presence = (Presence)msg.obj;
+	    			String from = presence.getFrom();
+	    			String ressource = fBroker.extractRessource(from);
+	    			if (presence.isAvailable() && ressource!= null && ressource.startsWith("nao")){
+	    				connexion_event(connexion_state.STATE_PRESENCE);
+	    			}
+	    				
+			    	return true;
+	    	}
+	    	
+	    	} catch (Exception e) {
+	    		connexion_event(connexion_state.STATE_OFFLINE);
+    			return true;
+			}
+	      
 		return false;
 	}
 
