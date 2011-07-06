@@ -52,7 +52,8 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
         this.m_speech = new SpeechController(this, this);
         
         this.m_nao = new NaoController(this);
-        this.m_nao.connect();
+        //FIXME : remove these hardcoded String, show a form and ask for login and passwd
+        this.m_nao.connect("Bender", "myfunnypassword");
     }
     
     /**
