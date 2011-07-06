@@ -30,8 +30,7 @@ public class NaoController
 	{
 		this.robotname = robotname;
 		this.password = password;
-		connectionmanager = ConnectionManager.getInstance(this.robotname, this.password);
-		this.m_event.onConnected();
+		connectionmanager = ConnectionManager.getInstance(this.robotname, this.password, this.m_event);
 	}
 	
 	public void walkTo(float x,float y,float theta)

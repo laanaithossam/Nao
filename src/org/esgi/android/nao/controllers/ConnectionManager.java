@@ -2,6 +2,7 @@ package org.esgi.android.nao.controllers;
 
 import java.util.HashMap;
 
+import org.esgi.android.nao.interfaces.INaoEvent;
 import org.xmlrpc.android.XMLRPCException;
 
 import android.os.Message;
@@ -13,7 +14,8 @@ import com.naoqi.remotecomm.ALProxy;
 
 public class ConnectionManager implements Callback {
 	ALBroker fBroker = null;
-
+	private INaoEvent m_event = null;
+	
 	public final String[] almodules = {
 			"ALTextToSpeech",
 			"ALAudioDevice",
@@ -49,13 +51,15 @@ public class ConnectionManager implements Callback {
 
 	private static ConnectionManager instance = null;
 
-	private ConnectionManager(String robotname, String password){
+	private ConnectionManager(String robotname, String password, INaoEvent event){
 		init_proxies(robotname, password);
+		this.m_event = event;
 	}
 
-	public final synchronized static ConnectionManager getInstance(String robotname, String password) {
+	public final synchronized static ConnectionManager getInstance(String robotname, 
+			String password, INaoEvent event) {
         if (instance == null)
-            instance = new ConnectionManager(robotname, password);
+            instance = new ConnectionManager(robotname, password, event);
         return instance;
     }
 
