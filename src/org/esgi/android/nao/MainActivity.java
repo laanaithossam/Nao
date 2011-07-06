@@ -55,7 +55,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
         
         this.m_nao = new NaoController(this, this);
         //FIXME : remove these hardcoded String, show a form and ask for login and passwd
-        this.m_nao.connect("Bender", "myfunnypassword");
+        //this.m_nao.connect("Bender", "myfunnypassword");
     }
     
     /**
@@ -252,7 +252,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 	@Override
 	public void onConnected() 
 	{
-		
+		Toast.makeText(this.getApplicationContext(), "Nao is now fully connected", Toast.LENGTH_LONG).show();
 	}
 
 	@Override
