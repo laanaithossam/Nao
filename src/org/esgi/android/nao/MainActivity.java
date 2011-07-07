@@ -7,6 +7,7 @@ import org.esgi.android.nao.interfaces.IAccelerometerEvent;
 import org.esgi.android.nao.interfaces.INaoConnectionEvent;
 import org.esgi.android.nao.interfaces.INaoListener;
 import org.esgi.android.nao.interfaces.ISpeechEvent;
+import org.esgi.android.nao.tools.Trigger;
 
 import android.app.Activity;
 import android.content.Context;
@@ -33,6 +34,8 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 	private SpeechController m_speech = null;
 	private NaoController m_nao = null;
 	
+//	private Trigger[] m_trigger = new Trigger[4];
+	
 	private float acc_x, acc_y, acc_z;
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -55,6 +58,12 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
         
         this.m_nao = new NaoController(this, this);
         //FIXME : remove these hardcoded String, show a form and ask for login and passwd
+             
+        //this.m_trigger[0].changeThreshold(5, 2); // Up trigger
+        //this.m_trigger[1].changeThreshold(5, 2); // Down trigger
+        //this.m_trigger[2].changeThreshold(5, 2); // Left trigger
+        //this.m_trigger[3].changeThreshold(5, 2); // Right trigger
+        
         //this.m_nao.connect("Bender", "myfunnypassword");
     }
     
@@ -188,7 +197,6 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 	{
 		Toast.makeText(this.getApplicationContext(), R.string.notify_walk_error, Toast.LENGTH_SHORT).show();
 	}
-
 	/**
 	 * Called when the {@link AccelerometerController} have refresh the
 	 * accelerometer value.
@@ -196,11 +204,33 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 	@Override
 	public void onAccelerometerUpdate(float x, float y, float z) 
 	{
+/*		this.m_trigger[0].changeValue(x);
+		this.m_trigger[1].changeValue(-x);
+		this.m_trigger[2].changeValue(y);
+		this.m_trigger[3].changeValue(-y);
+		
+		int moveX = 0;
+		int moveY = 0;
+		
+		if (this.m_trigger[0].isTrigged())
+			moveX = 1;
+		else if (this.m_trigger[1].isTrigged())
+			moveX = -1;
+		
+		if (this.m_trigger[2].isTrigged())
+			moveY = 1;
+		else if (this.m_trigger[3].isTrigged())
+			moveY = -1;
+		
+		this.m_nao.walkTo(moveX, moveY, 1);
+		
+		
 		this.acc_x = x;
 		this.acc_y = y;
 		this.acc_z = z;
 		
 		this.runOnUiThread(this);
+		*/
 	}
 	
 	/**
