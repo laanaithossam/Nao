@@ -3,6 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/nao-android-communication"/>
+	<classpathentry kind="lib" path="libs/asmack-issue15.jar"/>
+	<classpathentry kind="lib" path="libs/droid-fu-1.0-SNAPSHOT-rebuild.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
