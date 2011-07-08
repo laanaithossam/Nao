@@ -36,9 +36,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 	private AccelerometerController m_accelerometer = null;
 	private SpeechController m_speech = null;
 	private NaoController m_nao = null;
-	
-	private Trigger[] m_trigger = new Trigger[4];
-	
+	private String last_behavior = "";
 	private float acc_x, acc_y, acc_z;
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -61,16 +59,6 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 
         this.m_nao = new NaoController(this, this);
         
-        //FIXME : remove these hardcoded String, show a form and ask for login and passwd
-        for (int i = 0; i < m_trigger.length; i++) {
-        	this.m_trigger[i] = new Trigger();	
-		}
-        
-        this.m_trigger[0].changeThreshold(4, 3); // Up trigger
-        this.m_trigger[1].changeThreshold(4,3 ); // Down trigger
-        this.m_trigger[2].changeThreshold(5, 1); // Left trigger
-        this.m_trigger[3].changeThreshold(5, 1); // Right trigger
-       
         this.m_nao.connect("jmassot", "myfunnypassword");
     }
     
@@ -178,14 +166,19 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
     			this.m_nao.StandUp();
     			this.m_accelerometer.startReading();
     		}
-    		
     		return true;
     	}
     	else if (item.getItemId() == R.id.item_speech)
     	{
-    		this.m_nao.say("What do you want to tell me");
-    		this.m_nao.requestInstalledBehaviors();
-    		//this.m_speech.startSpeech();
+    		if (this.last_behavior != "") {
+    			this.m_nao.StopBehavior(this.last_behavior);
+    			this.last_behavior = "";
+    			}
+    		else 
+    		{
+    		this.m_nao.RunBehavior("DanceTaichii");
+    		this.last_behavior = "DanceTaichii";
+    		}
     		return true;
     	}
     	else if (item.getItemId() == R.id.item_cam)
@@ -309,7 +302,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 	public void onConnected() 
 	{
 		Toast.makeText(this.getApplicationContext(), "Nao is now fully connected", Toast.LENGTH_LONG).show();
-		this.m_nao.say("YouuuuHouuu I am fully connected");
+		this.m_nao.say("I'm connected to your Android device");
 		this.m_nao.StandUp();
 		this.m_nao.requestInstalledBehaviors();
 	}
@@ -349,6 +342,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 		}
 	}
 
+		//dead code this f**ing method is never called
 	@Override
 	public void ongetInstalledBehaviors(String[] behaviors) {
 		for (String behavior: behaviors)

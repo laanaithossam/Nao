@@ -18,6 +18,8 @@ public class NaoController implements ALProxy.MethodResponseListener
 	private String password = null;
 	private ConnectionManager connectionmanager = null;
 	private boolean stiffness = false;
+	private final String[] installed_behaviors = {"BallTracker", "PresentationNao", "DanceCaravanPalace", "DanceTaichii", 
+			"DanceThriller", "DanceVangelis", "Starwars"};
 	//-----------------------------------------------------------------------------------------------------------------
 	// Constructor
 	//-----------------------------------------------------------------------------------------------------------------
@@ -37,7 +39,9 @@ public class NaoController implements ALProxy.MethodResponseListener
 		connectionmanager = ConnectionManager.getInstance(this.connection_event);
 		connectionmanager.connect(this.robotname, this.password);
 	}
-	
+	/*
+	 * just works
+	 */
 	public void walkTo(float x,float y,float theta)
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
@@ -51,6 +55,11 @@ public class NaoController implements ALProxy.MethodResponseListener
 		connectionmanager.connexion_postCall(motion_proxy, "setWalkTargetVelocity", x, y, theta, (float)1.0);
 	}
 	
+	/**
+	 * 
+	 * don't use this method
+	 */ 
+	
 	public void setStiffnesses(boolean enable) {
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
@@ -61,6 +70,10 @@ public class NaoController implements ALProxy.MethodResponseListener
 		connectionmanager.connexion_postCall(motion_proxy, "setStiffnesses", 1.0);
 		this.stiffness = enable;
 	}
+	/**
+	 * Works Well
+	 * 
+	 */
 	
 	public void say(String message)
 	{
@@ -71,11 +84,17 @@ public class NaoController implements ALProxy.MethodResponseListener
 		connectionmanager.connexion_postCall(tts_proxy, "say", message);
 	}
 	
+	/**
+	 * Works
+	 */
 	public void StandUp()
 	{
 		this.RunBehavior("StandUp");
 	}
 	
+	/**
+	 * Works
+	 */
 	public void StopWalk()
 	{
 		this.RunBehavior("StopWalk");
@@ -89,10 +108,11 @@ public class NaoController implements ALProxy.MethodResponseListener
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
-		
+		this.say("Starting Behavior : " + name);
 		ALProxy fBehaviorManagerProxy = connectionmanager.getProxy("ALBehaviorManager");
 		connectionmanager.connexion_postCall(fBehaviorManagerProxy, "runBehavior",
 				name);
+		
 	}
 	
 	/**
@@ -102,12 +122,21 @@ public class NaoController implements ALProxy.MethodResponseListener
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
+		this.say("Stopping Behavior : " + name);
 		ALProxy fBehaviorManagerProxy = connectionmanager.getProxy("ALBehaviorManager");
 		connectionmanager.connexion_postCall( fBehaviorManagerProxy, "stopBehavior", name);
+		this.StopWalk();
 	}
 	
 	/**
 	 * 
+	 */
+	public String[] getInstalledBehaviors() {
+		return this.installed_behaviors;
+	}
+	
+	/**
+	 * just doesn't work don't know why the callback is never called ..
 	 */
 	public void requestInstalledBehaviors()
 	{
@@ -120,6 +149,7 @@ public class NaoController implements ALProxy.MethodResponseListener
 	
 	//FIXME: perhaps create a specific class
 	// but for now there are only one method which call onResponse so ..
+	// doesn't work just use the hardcoded behaviors list ..
 	@Override
 	public void onResponse(Object result) {
 		String[] behaviors = (String[]) result;
