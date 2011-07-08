@@ -12,6 +12,7 @@ import org.esgi.android.nao.tools.Trigger;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -170,7 +171,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
     	}
     	else if (item.getItemId() == R.id.item_speech)
     	{
-    		if (this.last_behavior != "") {
+ /*   		if (this.last_behavior != "") {
     			this.m_nao.StopBehavior(this.last_behavior);
     			this.last_behavior = "";
     			}
@@ -178,7 +179,9 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
     		{
     		this.m_nao.RunBehavior("DanceTaichii");
     		this.last_behavior = "DanceTaichii";
-    		}
+    		}*/
+    		this.m_nao.requestOutputVolume();
+    		this.m_nao.requestInstalledBehaviors();
     		return true;
     	}
     	else if (item.getItemId() == R.id.item_cam)
@@ -303,8 +306,6 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 	{
 		Toast.makeText(this.getApplicationContext(), "Nao is now fully connected", Toast.LENGTH_LONG).show();
 		this.m_nao.say("I'm connected to your Android device");
-		this.m_nao.StandUp();
-		this.m_nao.requestInstalledBehaviors();
 	}
 
 	@Override
@@ -342,11 +343,23 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 		}
 	}
 
-		//dead code this f**ing method is never called
+
 	@Override
 	public void ongetInstalledBehaviors(String[] behaviors) {
 		for (String behavior: behaviors)
 			Log.e("behavior",behavior);
+		
+	}
+
+	@Override
+	public void ongetVolume(int vol) {
+		Log.i("NAO", "volume: " + vol);
+		
+	}
+
+	@Override
+	public void onpictureAvailable(Bitmap picture) {
+		// find what we can do with this bitmap
 		
 	}
 }

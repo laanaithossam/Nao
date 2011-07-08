@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.naoqi.remotecomm.ALBroker;
 import com.naoqi.remotecomm.ALProxy;
+import com.naoqi.remotecomm.ALBroker.MethodCallListener;
 
 public class ConnectionManager implements Callback {
 	ALBroker fBroker = null;
@@ -117,7 +118,7 @@ public class ConnectionManager implements Callback {
 	public void connexion_event(connexion_state state) {
 		if (this.state == state)
 			return;
-	   	Log.e("connexion event", String.format("state: %s event: %s", state2string(state), state2string(state)));
+	   	Log.e("connexion event", String.format("state: %s event: %s", state2string(this.state), state2string(state)));
 	    	// state machine
 	    switch(state){
 	    	case STATE_OFFLINE:
@@ -159,7 +160,11 @@ public class ConnectionManager implements Callback {
 		}
 		return "UNKNOWN_STATE";
 	}
-
+	
+	public void registerListener(String method, MethodCallListener listener) {
+		fBroker.registerListener( "ImageViewer.fromData", listener);
+	}
+	
 	@Override
 	public boolean handleMessage(Message msg) {
 		try {	

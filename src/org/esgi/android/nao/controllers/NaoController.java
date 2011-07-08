@@ -2,12 +2,17 @@ package org.esgi.android.nao.controllers;
 
 import org.esgi.android.nao.interfaces.INaoConnectionEvent;
 import org.esgi.android.nao.interfaces.INaoListener;
+import org.jivesoftware.smack.util.Base64;
 
+import com.naoqi.remotecomm.ALBroker.MethodCallListener;
+import com.naoqi.remotecomm.ALMethodCall;
 import com.naoqi.remotecomm.ALProxy;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
-public class NaoController implements ALProxy.MethodResponseListener
+public class NaoController
 {
 	//-----------------------------------------------------------------------------------------------------------------
 	// Private variables
@@ -55,12 +60,31 @@ public class NaoController implements ALProxy.MethodResponseListener
 		connectionmanager.connexion_postCall(motion_proxy, "setWalkTargetVelocity", x, y, theta, (float)1.0);
 	}
 	
+	public void setOutputVolume(int vol) {
+		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
+			return;
+		ALProxy audiodev_proxy = connectionmanager.getProxy("ALAudioDevice");
+		connectionmanager.connexion_postCall(audiodev_proxy, "setOutputVolume", vol);
+	}
+	
+	public void requestOutputVolume(){
+		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
+			return;
+		ALProxy audiodev_proxy = connectionmanager.getProxy("ALAudioDevice");
+		connectionmanager.connexion_asyncCall(3000, new ALProxy.MethodResponseListener(){
+				public void onResponse(Object result) {
+					int vol = (Integer) result;
+					Log.i( "NAO",  "volume :" + vol);
+						nao_listener.ongetVolume(vol);
+					}},audiodev_proxy, "getOutputVolume");
+	}
+	
 	/**
 	 * 
 	 * don't use this method
 	 */ 
 	
-	public void setStiffnesses(boolean enable) {
+	private void setStiffnesses(boolean enable) {
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
 
@@ -70,11 +94,11 @@ public class NaoController implements ALProxy.MethodResponseListener
 		connectionmanager.connexion_postCall(motion_proxy, "setStiffnesses", 1.0);
 		this.stiffness = enable;
 	}
+	
 	/**
 	 * Works Well
 	 * 
 	 */
-	
 	public void say(String message)
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
@@ -128,33 +152,49 @@ public class NaoController implements ALProxy.MethodResponseListener
 		this.StopWalk();
 	}
 	
+	public void requestPicture() {
+		MethodCallListener picturelistener  = new MethodCallListener(){
+
+			@Override
+			public void onCall(ALMethodCall call) {			
+				String message = (String) call.params[0];
+				
+				byte[] val = Base64.decode(message.getBytes(), 0, 0, 0);//Base64.DEFAULT);
+			    Bitmap bmp = BitmapFactory.decodeByteArray(val, 0, val.length);
+			    nao_listener.onpictureAvailable(bmp);
+			}	
+		};
+		this.connectionmanager.registerListener("ImageViewer.fromData", picturelistener);
+	}
+	
 	/**
 	 * 
 	 */
-	public String[] getInstalledBehaviors() {
+	public String[] getHardcodedBehaviors() {
 		return this.installed_behaviors;
 	}
 	
 	/**
-	 * just doesn't work don't know why the callback is never called ..
+	 * just works
 	 */
 	public void requestInstalledBehaviors()
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
 		ALProxy fBehaviorManagerProxy = connectionmanager.getProxy("ALBehaviorManager");
-		connectionmanager.connexion_asyncCall(300000, this, 
+		connectionmanager.connexion_asyncCall(3000, new ALProxy.MethodResponseListener(){
+			public void onResponse(Object result) {
+				Object[] results = (Object[]) result;
+				
+				String[] behaviors = new String[results.length];
+
+				for (int i=0; i<results.length; i++) {
+					behaviors[i] = (String) results[i];
+				}
+				Log.i( "NAO",  "behaviors " + behaviors);
+					nao_listener.ongetInstalledBehaviors(behaviors);
+				}}, 
 				fBehaviorManagerProxy, "getInstalledBehaviors" );
 	}
-	
-	//FIXME: perhaps create a specific class
-	// but for now there are only one method which call onResponse so ..
-	// doesn't work just use the hardcoded behaviors list ..
-	@Override
-	public void onResponse(Object result) {
-		String[] behaviors = (String[]) result;
-		if (result == null)
-			return;
-		this.nao_listener.ongetInstalledBehaviors(behaviors);
-	}
+
 }
