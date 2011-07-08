@@ -71,6 +71,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
         this.m_trigger[2].changeThreshold(5, 1); // Left trigger
         this.m_trigger[3].changeThreshold(5, 1); // Right trigger
        
+        this.m_nao.connect("jmassot", "myfunnypassword");
     }
     
     /**
