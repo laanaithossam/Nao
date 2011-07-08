@@ -24,8 +24,11 @@ import android.widget.Toast;
 /**
  * 
  */
-public class MainActivity extends Activity implements IAccelerometerEvent, ISpeechEvent, INaoConnectionEvent,INaoListener,
-														Runnable
+public class MainActivity extends Activity implements IAccelerometerEvent, 
+													  ISpeechEvent, 
+													  INaoConnectionEvent,
+													  INaoListener,
+													  Runnable
 {
 	//-----------------------------------------------------------------------------------------------------------------
 	// Private variables
@@ -34,7 +37,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 	private SpeechController m_speech = null;
 	private NaoController m_nao = null;
 	
-//	private Trigger[] m_trigger = new Trigger[4];
+	private Trigger[] m_trigger = new Trigger[4];
 	
 	private float acc_x, acc_y, acc_z;
 	
@@ -50,21 +53,24 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
     {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.main);
-        
+
         SensorManager sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
-        this.m_accelerometer = new AccelerometerController(sensorManager, this, 500);
-        
+        this.m_accelerometer = new AccelerometerController(sensorManager, this, 100);
+
         this.m_speech = new SpeechController(this, this);
-        
+
         this.m_nao = new NaoController(this, this);
-        //FIXME : remove these hardcoded String, show a form and ask for login and passwd
-             
-        //this.m_trigger[0].changeThreshold(5, 2); // Up trigger
-        //this.m_trigger[1].changeThreshold(5, 2); // Down trigger
-        //this.m_trigger[2].changeThreshold(5, 2); // Left trigger
-        //this.m_trigger[3].changeThreshold(5, 2); // Right trigger
         
-        //this.m_nao.connect("Bender", "myfunnypassword");
+        //FIXME : remove these hardcoded String, show a form and ask for login and passwd
+        for (int i = 0; i < m_trigger.length; i++) {
+        	this.m_trigger[i] = new Trigger();	
+		}
+        
+        this.m_trigger[0].changeThreshold(4, 3); // Up trigger
+        this.m_trigger[1].changeThreshold(4,3 ); // Down trigger
+        this.m_trigger[2].changeThreshold(5, 1); // Left trigger
+        this.m_trigger[3].changeThreshold(5, 1); // Right trigger
+       
     }
     
     /**
@@ -164,9 +170,11 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
     		if (this.m_accelerometer.isRunning())
     		{
     			this.m_accelerometer.stopReading();
+    			this.m_nao.StopWalk();
     		}
     		else
     		{
+    			this.m_nao.StandUp();
     			this.m_accelerometer.startReading();
     		}
     		
@@ -174,7 +182,9 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
     	}
     	else if (item.getItemId() == R.id.item_speech)
     	{
-    		this.m_speech.startSpeech();
+    		this.m_nao.say("What do you want to tell me");
+    		this.m_nao.requestInstalledBehaviors();
+    		//this.m_speech.startSpeech();
     		return true;
     	}
     	else if (item.getItemId() == R.id.item_cam)
@@ -204,25 +214,40 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 	@Override
 	public void onAccelerometerUpdate(float x, float y, float z) 
 	{
-/*		this.m_trigger[0].changeValue(x);
-		this.m_trigger[1].changeValue(-x);
-		this.m_trigger[2].changeValue(y);
-		this.m_trigger[3].changeValue(-y);
-		
-		int moveX = 0;
-		int moveY = 0;
-		
-		if (this.m_trigger[0].isTrigged())
-			moveX = 1;
-		else if (this.m_trigger[1].isTrigged())
-			moveX = -1;
-		
-		if (this.m_trigger[2].isTrigged())
-			moveY = 1;
-		else if (this.m_trigger[3].isTrigged())
-			moveY = -1;
-		
-		this.m_nao.walkTo(moveX, moveY, 1);
+		float moveX = (float) 0;
+		float moveY = (float) 0;
+		float moveTheta = (float) 0;
+	
+		if (x < -3.5)
+		{
+			moveX = (float) -((x+3.5)/(10.0-3.5));
+		}
+		else if (x > 3.5)
+		{
+			moveX = (float) -((x-3.5)/(10.0-3.5));			
+		}
+		else
+		{
+			// dead zone
+			moveX = (float) 0.0;
+		}
+		moveY = (float) 0.0;
+        
+		if (y < -3.5)
+		{
+			moveTheta = (float) -((y+3.5)/(10.0-3.5));
+		}
+		else if (y > 3.5)
+		{
+			moveTheta = (float) -((y-3.5)/(10.0-3.5));			
+		}
+		else
+		{
+			// dead zone
+			moveTheta = (float) 0.0;
+		}
+  		
+		this.m_nao.walkTo(moveX, moveY, moveTheta);
 		
 		
 		this.acc_x = x;
@@ -230,7 +255,6 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 		this.acc_z = z;
 		
 		this.runOnUiThread(this);
-		*/
 	}
 	
 	/**
@@ -240,6 +264,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 	public void onAccelerometerStart() 
 	{
 		Toast.makeText(this.getApplicationContext(), R.string.notify_walk_on, Toast.LENGTH_SHORT).show();
+		//this.m_nao.StopWalk();
 	}
 
 	/**
@@ -283,6 +308,9 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 	public void onConnected() 
 	{
 		Toast.makeText(this.getApplicationContext(), "Nao is now fully connected", Toast.LENGTH_LONG).show();
+		this.m_nao.say("YouuuuHouuu I am fully connected");
+		this.m_nao.StandUp();
+		this.m_nao.requestInstalledBehaviors();
 	}
 
 	@Override
@@ -322,7 +350,8 @@ public class MainActivity extends Activity implements IAccelerometerEvent, ISpee
 
 	@Override
 	public void ongetInstalledBehaviors(String[] behaviors) {
-		// FIXME: insert the behaviors name into a list
+		for (String behavior: behaviors)
+			Log.e("behavior",behavior);
 		
 	}
 }

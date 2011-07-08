@@ -57,6 +57,8 @@ public class ConnectionManager implements Callback {
     }
 	
 	public void connect(String robotname, String password) {
+		if (this.state == this.state.STATE_PRESENCE)
+			return;
 		connexion_event(connexion_state.STATE_CONNECTING);
 		init_proxies(robotname, password);
 	}
@@ -74,7 +76,6 @@ public class ConnectionManager implements Callback {
 			e.printStackTrace();
 			}
 		}
-
 		proxy = proxies.get("AWPreferences");
 		if (null != proxy)
 			proxy.setDestinationJabberId( "_preferences@xmpp.aldebaran-robotics.com" );
@@ -116,7 +117,7 @@ public class ConnectionManager implements Callback {
 	public void connexion_event(connexion_state state) {
 		if (this.state == state)
 			return;
-	   	Log.i("connexion event", String.format("state: %s event: %s", state2string(state), state2string(state)));
+	   	Log.e("connexion event", String.format("state: %s event: %s", state2string(state), state2string(state)));
 	    	// state machine
 	    switch(state){
 	    	case STATE_OFFLINE:
@@ -138,7 +139,6 @@ public class ConnectionManager implements Callback {
 	    		this.state = connexion_state.STATE_PRESENCE;
 	    		this.m_event.onConnected();
 	    		break;
-	    		
     	}
 	}
 
@@ -154,6 +154,8 @@ public class ConnectionManager implements Callback {
 			return "STATE_CONNECTING";
 		case STATE_CONNECTED:
 			return "STATE_CONNECTED";
+		case STATE_PRESENCE:
+			return "STATE_PRESENCE";
 		}
 		return "UNKNOWN_STATE";
 	}
@@ -173,8 +175,8 @@ public class ConnectionManager implements Callback {
 	    		case ALBroker.ID_DISCONNECTED:
 	    		case ALBroker.ID_CONNECT_ERROR:
 	    			connexion_event(connexion_state.STATE_OFFLINE);
-	    			return true;
-	        
+	    			return true;	        
+	    			
 	    		case ALBroker.ID_CONNECTED:
 	    			//FIXME: presence ?
 	    			connexion_event(connexion_state.STATE_CONNECTED);   
@@ -188,17 +190,14 @@ public class ConnectionManager implements Callback {
 	    			String ressource = fBroker.extractRessource(from);
 	    			if (presence.isAvailable() && ressource!= null && ressource.startsWith("nao")){
 	    				connexion_event(connexion_state.STATE_PRESENCE);
-	    			}
-	    				
+	    			}	    				
 			    	return true;
 	    	}
 	    	
 	    	} catch (Exception e) {
 	    		connexion_event(connexion_state.STATE_OFFLINE);
     			return true;
-			}
-	      
+			}	      
 		return false;
 	}
-
 }

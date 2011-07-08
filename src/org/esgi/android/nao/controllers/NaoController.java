@@ -17,6 +17,7 @@ public class NaoController implements ALProxy.MethodResponseListener
 	private String robotname = null;
 	private String password = null;
 	private ConnectionManager connectionmanager = null;
+	private boolean stiffness = false;
 	//-----------------------------------------------------------------------------------------------------------------
 	// Constructor
 	//-----------------------------------------------------------------------------------------------------------------
@@ -41,41 +42,74 @@ public class NaoController implements ALProxy.MethodResponseListener
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
+		if (!this.stiffness)
+			setStiffnesses(true);
 
 		Log.i("walkTo: "," X = " + x + " | Y = "+ y +" | O = " + theta);
 		
 		ALProxy motion_proxy = connectionmanager.getProxy("ALMotion");
-		connectionmanager.connexion_postCall(motion_proxy, "walkTo", x,y,theta);
+		connectionmanager.connexion_postCall(motion_proxy, "setWalkTargetVelocity", x, y, theta, (float)1.0);
 	}
+	
+	public void setStiffnesses(boolean enable) {
+		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
+			return;
 
+		Log.i("Stiffnesses", "" + enable);
+		
+		ALProxy motion_proxy = connectionmanager.getProxy("ALMotion");
+		connectionmanager.connexion_postCall(motion_proxy, "setStiffnesses", 1.0);
+		this.stiffness = enable;
+	}
+	
 	public void say(String message)
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
-
 		Log.i("Say: ", message);
 		ALProxy tts_proxy = connectionmanager.getProxy("ALTextToSpeech");
 		connectionmanager.connexion_postCall(tts_proxy, "say", message);
+	}
+	
+	public void StandUp()
+	{
+		this.RunBehavior("StandUp");
+	}
+	
+	public void StopWalk()
+	{
+		this.RunBehavior("StopWalk");
 	}
 	
 	/**
 	 * 
 	 * @param behavior
 	 */
-	public void RunBehavior(String behavior)
+	public void RunBehavior(String name)
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
 		
 		ALProxy fBehaviorManagerProxy = connectionmanager.getProxy("ALBehaviorManager");
 		connectionmanager.connexion_postCall(fBehaviorManagerProxy, "runBehavior",
-				behavior);
+				name);
 	}
 	
 	/**
 	 * 
 	 */
-	public void getInstalledBehaviors()
+	public void StopBehavior(String name)
+	{
+		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
+			return;
+		ALProxy fBehaviorManagerProxy = connectionmanager.getProxy("ALBehaviorManager");
+		connectionmanager.connexion_postCall( fBehaviorManagerProxy, "stopBehavior", name);
+	}
+	
+	/**
+	 * 
+	 */
+	public void requestInstalledBehaviors()
 	{
 		if (connectionmanager.state != ConnectionManager.connexion_state.STATE_PRESENCE)
 			return;
