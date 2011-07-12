@@ -4,7 +4,7 @@
     <string name="menu_leave">Quitter</string>
     <string name="menu_walk_on">Marcher</string>
     <string name="menu_walk_off">Arrêter</string>
-    <string name="menu_speech">Parler</string>
+    <string name="menu_speech">Comportements</string>
     <string name="menu_cam">Filmer</string>
     <string name="notify_walk_on">L\'accéléromètre est activé</string>
     <string name="notify_walk_off">L\'accéléromètre est désactivé</string>
