@@ -7,10 +7,11 @@ import org.esgi.android.nao.interfaces.IAccelerometerEvent;
 import org.esgi.android.nao.interfaces.INaoConnectionEvent;
 import org.esgi.android.nao.interfaces.INaoListener;
 import org.esgi.android.nao.interfaces.ISpeechEvent;
-import org.esgi.android.nao.tools.Trigger;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.hardware.SensorManager;
@@ -19,7 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 /**
@@ -37,9 +38,9 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 	private AccelerometerController m_accelerometer = null;
 	private SpeechController m_speech = null;
 	private NaoController m_nao = null;
-	private String last_behavior = "";
-	private float acc_x, acc_y, acc_z;
-	
+	private Bitmap mypicture = null;
+	private AlertDialog behaviors_dialog = null;
+	private boolean[] behavior_enabled = null;
 	//-----------------------------------------------------------------------------------------------------------------
 	// Override methods
 	//-----------------------------------------------------------------------------------------------------------------
@@ -59,10 +60,31 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
         this.m_speech = new SpeechController(this, this);
 
         this.m_nao = new NaoController(this, this);
-        
-        this.m_nao.connect("jmassot", "myfunnypassword");
+		final String[] items = m_nao.getHardcodedBehaviors();
+		behavior_enabled = new boolean[items.length];
+
+		for (int i = 0; i < items.length; i++)
+			behavior_enabled[i] = false;
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Pick a behavior");
+		builder.setItems(items, new DialogInterface.OnClickListener() {
+		    public void onClick(DialogInterface dialog, int item) {
+		    	if (behavior_enabled[item] == true) {
+		    		Toast.makeText(getApplicationContext(), "stop: " + items[item], Toast.LENGTH_SHORT).show();
+		    		m_nao.StopBehavior(items[item]);
+		    		behavior_enabled[item] = false;
+		    	}
+		    	else {
+		    		Toast.makeText(getApplicationContext(), "run: " + items[item], Toast.LENGTH_SHORT).show();
+		    		m_nao.RunBehavior(items[item]);
+		    		behavior_enabled[item] = true;
+		    	}
+		    }
+		});
+		behaviors_dialog = builder.create();
     }
-    
+
     /**
      * onResume method is called when the application is resumed.
      * Here we resume all item need to be resumed.
@@ -137,7 +159,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
     	if (this.m_accelerometer.isRunning())
     		walkMenu.setTitle(R.string.menu_walk_off);
     	else
-    		walkMenu.setTitle(R.string.menu_walk_on);
+    		walkMenu.setTitle(R.string.menu_walk_on);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
     	
     	return true;
     }
@@ -161,6 +183,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
     		{
     			this.m_accelerometer.stopReading();
     			this.m_nao.StopWalk();
+    			this.m_nao.requestPicture();
     		}
     		else
     		{
@@ -171,18 +194,9 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
     	}
     	else if (item.getItemId() == R.id.item_speech)
     	{
- /*   		if (this.last_behavior != "") {
-    			this.m_nao.StopBehavior(this.last_behavior);
-    			this.last_behavior = "";
-    			}
-    		else 
-    		{
-    		this.m_nao.RunBehavior("DanceTaichii");
-    		this.last_behavior = "DanceTaichii";
-    		}*/
-    		this.m_nao.requestOutputVolume();
-    		this.m_nao.requestInstalledBehaviors();
+    		behaviors_dialog.show();
     		return true;
+    		
     	}
     	else if (item.getItemId() == R.id.item_cam)
     	{
@@ -244,13 +258,7 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 			moveTheta = (float) 0.0;
 		}
   		
-		this.m_nao.walkTo(moveX, moveY, moveTheta);
-		
-		
-		this.acc_x = x;
-		this.acc_y = y;
-		this.acc_z = z;
-		
+		this.m_nao.walkTo(moveX, moveY, moveTheta);	
 		this.runOnUiThread(this);
 	}
 	
@@ -261,7 +269,6 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 	public void onAccelerometerStart() 
 	{
 		Toast.makeText(this.getApplicationContext(), R.string.notify_walk_on, Toast.LENGTH_SHORT).show();
-		//this.m_nao.StopWalk();
 	}
 
 	/**
@@ -325,21 +332,14 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 	@Override
 	public void run() 
 	{
-		TextView txt_x = (TextView) this.findViewById(R.id.axisx);
-		TextView txt_y = (TextView) this.findViewById(R.id.axisy);
-		TextView txt_z = (TextView) this.findViewById(R.id.axisz);
 		
+		ImageView picture = (ImageView) this.findViewById(R.id.picture);
 		if (this.m_accelerometer.isRunning())
 		{
-			txt_x.setText("The axis x : " + this.acc_x);
-			txt_y.setText("The axis y : " + this.acc_y);
-			txt_z.setText("The axis z : " + this.acc_z);
+			picture.setImageBitmap(this.mypicture);
 		}
 		else
 		{
-			txt_x.setText("waiting");
-			txt_y.setText("waiting");
-			txt_z.setText("waiting");
 		}
 	}
 
@@ -357,9 +357,11 @@ public class MainActivity extends Activity implements IAccelerometerEvent,
 		
 	}
 
+	/**
+	 * Just doesn't work..
+	 */
 	@Override
 	public void onpictureAvailable(Bitmap picture) {
-		// find what we can do with this bitmap
-		
+		this.mypicture = picture;
 	}
 }
